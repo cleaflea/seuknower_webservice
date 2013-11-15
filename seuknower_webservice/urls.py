@@ -19,7 +19,6 @@ urlpatterns = patterns('',
 urlpatterns += patterns('curriculum_service.views',
     url(r'^seuknower_webservice/curriculum/([\w]+)/([\w-]+)/$', 'parserHtml'),
     url(r'^seuknower_webservice/curriculums/term/$', 'getCurriculumTerm'),
-    url(r'^seuknower_webservice/curriculums/([\w]+)/([\w-]+)/$', 'curriculum'),
 )
 
 urlpatterns += patterns('tyx_service.views',
@@ -30,9 +29,6 @@ urlpatterns += patterns('tyx_service.views',
 )
 
 urlpatterns += patterns('jwc_service.views',
-  url(r'^seuknower_webservice/jwc/$', 'getJwcInfo'),
-  url(r'^seuknower_webservice/jwc/more/(\d+)/$', 'getMoreInfo'),
-  url(r'^seuknower_webservice/jwc/detaile/(\d+)/$', 'getDetaile'),
   url(r'^seuknower_webservice/jwc/info$', 'getJwcInfor'),
 )
 
@@ -46,7 +42,6 @@ urlpatterns += patterns('library_webservice.views',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
-    url(r'^seuknower_webservice/library/instruction/$', 'instruction'),
     url(r'^seuknower_webservice/library/search_book/$', 'search_book'),
     url(r'^seuknower_webservice/library/book_detail/$', 'book_detail'),
     url(r'^seuknower_webservice/library/rendered_books/$', 'check_render_books'),
@@ -55,6 +50,5 @@ urlpatterns += patterns('library_webservice.views',
     url(r'^seuknower_webservice/library/appoint_book/$', 'appoint_book'),
     url(r'^seuknower_webservice/library/cancel_appoint/$', 'cancel_appoint'),
     url(r'^seuknower_webservice/library/appoint_info/$', 'appoint_info'),
-    url(r'^seuknower_webservice/library/appoint_book/$', 'appoint_book'),
     url(r'^seuknower_webservice/library/check_account/$', 'check_account'),
 )

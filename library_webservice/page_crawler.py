@@ -100,6 +100,201 @@ class PageCrawler:
                   'sort':sort, 'orderby':orderby, 'showmode':showmode, 'dept':dept}
         params_str = urllib.urlencode(params)
         search_url = ori_url + params_str
+        print search_url
         req = urllib2.Request(search_url)
         res = urllib2.urlopen(req, timeout=config.TIME_OUT)
         return res.read()
+
+    def get_search_detail_page(self, marc_no):
+        '''Get book detail page.
+
+        Args:
+            relative_url: Every book has it's own detail-page url which can be gotten from the title-link
+            in the search-list page
+
+        Returns:
+            If request successfully, return detail page string, else return None.
+
+        Raises:
+            urllib2.HTTPError,
+            urllib2.URLError,
+        '''
+        detail_url = config.BOOK_DETAIL_URL + marc_no
+        req = urllib2.Request(detail_url)
+        res = urllib2.urlopen(req, timeout=config.TIME_OUT)
+        return res.read()
+
+
+    def get_rendered_book_page(self):
+            '''Get render book list based on login.
+
+            Only state is the result of login successfully will return book list.
+
+            Args:
+                state: login state, type: login_state
+
+            Returns:
+                If log in successfully, it will return html-string, else return None.
+
+            Raises:
+                urllib2.HTTPError,
+                urllib2.URLError,
+                custom_exception.LoginException,
+            '''
+            if self.__state:
+                state = self.__state
+            else:
+                state = self.login()
+            status = state.get_status()
+            if not status:
+                raise custom_exception.LoginException
+            else:
+                opener = state.get_opener()
+                result_url = config.RENDER_BOOK_LIST_URL
+                urllib2.install_opener(opener)
+                req = urllib2.Request(result_url)
+                res = urllib2.urlopen(req, timeout=config.TIME_OUT)
+                return res.read()
+
+    def renew_book(self,barcode):
+            '''Renew book.
+
+            Args:
+                barcode: the unique code.
+
+            Returns:
+                SUCCESS(True) or FAILED(failed)
+
+            Raises:
+                urllib2.HTTPError,
+                urllib2.URLError,
+                custom_exception.LoginException
+            '''
+            SUCCESS = True
+            FAILED = False
+            if self.__state:
+                state = self.__state
+            else:
+                state = self.login()
+            # 13位时间戳
+            timestamp = "%13f" % (time.time()*1000)
+            renew_url = config.RENEW_URL % (barcode, timestamp)
+            if state.get_status():
+                opener = state.get_opener()
+                urllib2.install_opener(opener)
+                req = urllib2.Request(renew_url, urllib.urlencode({}))
+                res = urllib2.urlopen(req, timeout=config.TIME_OUT)
+                if res.getcode() == 200:
+                    # print res.info()
+                    html = res.read()
+                    return html
+            else:
+                raise custom_exception.LoginException
+
+    def get_appointed_books_page(self):
+        '''Get the page that can check what books i have appointed.
+
+        Raises:
+            urllib2.HTTPError,
+            urllib2.URLError,
+            custom_exception.LoginException
+        '''
+        if self.__state:
+            state = self.__state
+        else:
+            state = self.login()
+        if state.get_status():
+            # 需要拿着上次登录的cookie再去进行下一次访问，因为下一次访问是需要有登录权限的
+            # 所以需要拿着登录时记录的cookie去请求，
+            # 这样就可以根据cookie中的sessionid来告诉服务器我是要哪个session便于和服务器会话，服务器在session中也放了cookie对应的用户信息userid什么的
+            urllib2.install_opener(state.get_opener())
+            req = urllib2.Request(config.APPOINTED_URL)
+            res = urllib2.urlopen(req)
+            return res.read()
+        else:
+            raise custom_exception.LoginException
+
+    def cancel_appoint(self, call_no, marc_no, loca):
+        if self.__state:
+            state = self.__state
+        else:
+            state = self.login()
+        if state.get_status():
+            t = "%13.0f"%(time.time()*1000)
+            # call_no = "I712.45/488"
+            # marc_no = "0000519601"
+            # loca = "607"
+            # 用chrome或者用wireshark抓包看一下就明白啦就一个ajax请求，然后call_no，marc_no，loca这些奇怪的参数都是抓包分析出来的
+            params = {"call_no":call_no, "marc_no":marc_no, "loca":loca, "time":t}
+            url = "http://www.lib.seu.edu.cn:8080/reader/ajax_preg.php?"+urllib.urlencode(params)
+            req = urllib2.Request(url, urllib.urlencode({}))
+            urllib2.install_opener(state.get_opener())
+            res = urllib2.urlopen(req)
+            return res.read()
+        else:
+            raise custom_exception.LoginException
+
+    def get_appoint_info_page(self, marc_no):
+        '''Get appoint page .
+
+        Args:
+            marc_no: A number that can identify a book exclusively.
+
+        Returns:
+            the appoint page
+
+        Raises:
+            urllib2.HTTPError,
+            urllib2.URLError,
+            custom_exception.LoginException.
+        '''
+        renew_url = config.BOOK_APPOINT_URL + marc_no
+        if self.__state:
+            state = self.__state
+        else:
+            state = self.login()
+        if state.get_status():
+            req = urllib2.Request(renew_url)
+            opener = state.get_opener()
+            urllib2.install_opener(opener)
+            res = urllib2.urlopen(req, timeout=config.TIME_OUT)
+            return res.read()
+        else:
+            raise custom_exception.LoginException
+
+    def appoint_book(self, callno, location, check, preg_days='30', take_loca='90001', pregKeepDay='7'):
+        '''Appoint book.
+
+        Args:
+            take_loca: 90001-九龙湖总借还处, 00916-丁家桥中文借书处, 00940-四牌楼总借还处
+            callno: 索书号
+            location: 图书馆藏处编号
+
+        Returns:
+            Result html.
+
+        Raises:
+            urllib2.HTTPError,
+            urllib2.URLError,
+            custom_exception.LoginException
+        '''
+        state = self.login()
+        if state.get_status():
+            opener = state.get_opener()
+            # cleantha--->
+            # 不知道为什么原来先声的人写了count为10，反正抓包抓出来就是1
+            # 但是感觉count是10或者1都不影响额
+            params = {'count':'1', 'preg_days'+str(check):preg_days, 'take_loca'+str(check):take_loca,
+                      'callno'+str(check):callno, 'location'+str(check):location,
+                      'pregKeepDays'+str(check):pregKeepDay ,'check':check
+            }
+            url = config.APPOINT_URL + urllib.urlencode(params)
+            # print url
+            urllib2.install_opener(opener)
+            req = urllib2.Request(url)
+            res = urllib2.urlopen(req)
+            # print res.info()
+            html = res.read()
+            return html
+        else:
+            raise custom_exception.LoginException
