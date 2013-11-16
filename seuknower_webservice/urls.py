@@ -24,8 +24,7 @@ urlpatterns += patterns('curriculum_service.views',
 urlpatterns += patterns('tyx_service.views',
   url(r'^seuknower_webservice/tyx/([\w]+)/([\w]+)/$', 'tyxPc'),
   url(r'^seuknower_webservice/tyx/checkAccount/$', 'check_account'),
-  url(r'^seuknower_webservice/tyx/test/$', 'test'),
-  url(r'^seuknower_webservice/tyx/tyb_broadcast/$', 'get_ren_tyb__broadcast'),
+  # url(r'^seuknower_webservice/tyx/tyb_broadcast/$', 'get_ren_tyb__broadcast'),
 )
 
 urlpatterns += patterns('jwc_service.views',
