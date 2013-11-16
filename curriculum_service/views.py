@@ -55,6 +55,8 @@ def parserHtml(request, cardNumber, academicYear):
         table = soup.findAll("td", rowspan="5")
         br = BeautifulSoup('<br/>')
 
+        # 这个解析的方法是一个比较讨巧的方法，一般情况是对td做contents之后得到的列表中<br>是出现在奇数位置的，而和课程相关的信息是出现在偶数位置的，并且当一个td中有两个课程的时候另一个课程的开始位置是6，如果有三次课就是9这也是下面代码判断j%3的作用
+        # 当时上面的是理想情况，理想情况就是一门课的信息就是课名时间和上课地点，但是假如td里面的课程没有课程地点这个信息，那之后的课程信息都会出现在contents列表的奇数位置，而不是偶数位置了，这个就需要在偶数位置如果是<br>的时候再插入一个标签，下面代码插入的是<br>，这样就可以保证后面的课程信息又是出现在偶数位置了
         morningCourseList = []
         for i in xrange(1, 6):
             morningCourse = []
@@ -71,6 +73,8 @@ def parserHtml(request, cardNumber, academicYear):
                 # 如果是没有上课地点的课那么本应该写上课地点的位置上是一个br
                 else:
                     # cleantha--->这是要干嘛= =
+                    # 这里的作用就是为了处理像这样没有上课地点，情况，这样就要填充一个br或者其他的东西来让和课程有关的信息出现在contents列表中的偶数位置
+                    # <td class="line_topleft" rowspan="2"   align="center">工业系统认识1<br>[6-6周]11-13节<br><br>电路基础<br>[1-16周]11-12节<br>九龙湖教七-203<br>&nbsp;</td>
                     table[i].contents.insert(j, br.br)
                     temp.append('')
             morningCourseList.append(morningCourse)
