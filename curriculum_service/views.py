@@ -6,6 +6,10 @@ import urllib
 import json
 import re
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 # return the term
 def getCurriculumTerm(request):
     uFile = urllib.urlopen('http://xk.urp.seu.edu.cn/jw_service/service/lookCurriculum.action')
@@ -164,4 +168,125 @@ def parserHtml(request, cardNumber, academicYear):
         courseList.append(saturdayCourse)
         courseList.append(sundayCourse)
         return HttpResponse(json.dumps([sidebarList, courseList], ensure_ascii=False), mimetype='application/json')
+
+def getCurriculumByDay(request, cardNumber, academicYear, weekday):
+    print 'weekday--->' + weekday
+    params = urllib.urlencode(
+        {'queryStudentId': cardNumber, 'queryAcademicYear': academicYear})
+    uFile = urllib.urlopen(
+        "http://xk.urp.seu.edu.cn/jw_service/service/stuCurriculum.action", params)
+    # decode(utf-8) turn to normal unicode that can encode to other protocal
+    html = uFile.read().decode('utf-8')
+
+    pat = re.compile(ur'没有找到该学生信息', re.U)
+    match = pat.search(html)
+    if match:
+        return HttpResponse('没有找到该学生信息')
+
+    soup = BeautifulSoup(html)
+
+    weekday = int(weekday)
+
+    # 周一到周五
+    if weekday != 6 and weekday != 0:
+
+        print 'weekday'
+
+        table = soup.findAll("td", rowspan="5")
+        br = BeautifulSoup('<br/>')
+
+        morningCourse = []
+        for j in [k for k in xrange(len(table[weekday].contents[:-1])) if not (k % 2)]:
+            if not j % 3:
+                # temp = []
+                morningCourse.append(table[weekday].contents[j])
+            if table[weekday].contents[j] != br.br:
+                # temp.append(table[3].contents[j])
+                pass
+            else:
+                table[weekday].contents.insert(j, br.br)
+                # temp.append('')
+
+        for morning in morningCourse:
+            print morning
+
+        afternoonCourse = []
+        for j in [k for k in xrange(len(table[weekday+6].contents[:-1])) if not (k % 2)]:
+            if not j % 3:
+                afternoonCourse.append(table[weekday+6].contents[j])
+            if table[weekday+6].contents[j] != br.br:
+                # temp.append(table[i].contents[j])
+                pass
+            else:
+                table[weekday+6].contents.insert(j, br.br)
+                # temp.append('')
+
+        for afternoon in afternoonCourse:
+            print afternoon
+
+        table = soup.findAll('td', rowspan='2')
+
+        eveningCourse = []
+        for j in [k for k in xrange(len(table[weekday].contents[:-1])) if not (k % 2)]:
+            if not j % 3:
+                # temp = []
+                eveningCourse.append(table[weekday].contents[j])
+            if table[weekday].contents[j] != br.br:
+                # temp.append(table[i].contents[j])
+                pass
+            else:
+                table[weekday].contents.insert(j, br.br)
+                # temp.append('')
+
+        for evening in eveningCourse:
+            print evening
+
+        return HttpResponse(json.dumps([morningCourse, afternoonCourse, eveningCourse], ensure_ascii=False), mimetype='application/json')
+
+    # 周六
+    if weekday == 6:
+
+        print 'saturday'
+
+        table = soup.findAll('td', rowspan='2')
+        br = BeautifulSoup('<br/>')
+
+        saturdayCourse = []
+        for i in [j for j in xrange(len(table[7].contents[:-1])) if not (j % 2)]:
+            if not i % 3:
+                # temp = []
+                saturdayCourse.append(table[7].contents[i])
+            if table[7].contents[i] != br.br:
+                # temp.append(table[7].contents[i])
+                pass
+            else:
+                table[7].contents[i].insert(j, br.br)
+                # temp.append('')
+
+        return HttpResponse(json.dumps(saturdayCourse, ensure_ascii=False), mimetype='application/json')
+
+
+    # 周日
+    if weekday == 0:
+
+        print 'sunday'
+
+        table = soup.findAll('td', rowspan='2')
+        br = BeautifulSoup('<br/>')
+
+        sundayCourse = []
+        for i in [j for j in xrange(len(table[9].contents[:-1])) if not (j % 2)]:
+            if not i % 3:
+                # temp = []
+                sundayCourse.append(table[9].contents[i])
+            if table[9].contents[i] != br.br:
+                # temp.append(table[9].contents[i])
+                pass
+            else:
+                table[9].contents[i].insert(j, br.br)
+                # temp.append('')
+        for sunday in sundayCourse:
+            print sunday
+
+        return HttpResponse(json.dumps(sundayCourse, ensure_ascii=False), mimetype='application/json')
 

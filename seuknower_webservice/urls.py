@@ -16,19 +16,24 @@ urlpatterns = patterns('',
     # url(r'^admin/', include(admin.site.urls)),
 )
 
+urlpatterns += patterns('qanda_service.views',
+    url(r'^seuknower_webservice/qanda/(.*)', 'findQuestionByContent'),
+)
+
 urlpatterns += patterns('curriculum_service.views',
     url(r'^seuknower_webservice/curriculum/([\w]+)/([\w-]+)/$', 'parserHtml'),
     url(r'^seuknower_webservice/curriculums/term/$', 'getCurriculumTerm'),
+    url(r'^seuknower_webservice/curriculums/([\w]+)/([\w-]+)/([\w])/$', 'getCurriculumByDay')
 )
 
 urlpatterns += patterns('tyx_service.views',
-  url(r'^seuknower_webservice/tyx/([\w]+)/([\w]+)/$', 'tyxPc'),
-  url(r'^seuknower_webservice/tyx/checkAccount/$', 'check_account'),
-  # url(r'^seuknower_webservice/tyx/tyb_broadcast/$', 'get_ren_tyb__broadcast'),
+    url(r'^seuknower_webservice/tyx/([\w]+)/([\w]+)/$', 'tyxPc'),
+    url(r'^seuknower_webservice/tyx/checkAccount/$', 'check_account'),
+    # url(r'^seuknower_webservice/tyx/tyb_broadcast/$', 'get_ren_tyb__broadcast'),
 )
 
 urlpatterns += patterns('jwc_service.views',
-  url(r'^seuknower_webservice/jwc/info$', 'getJwcInfor'),
+    url(r'^seuknower_webservice/jwc/info$', 'getJwcInfor'),
 )
 
 urlpatterns += patterns('library_webservice.views',
