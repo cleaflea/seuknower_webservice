@@ -4,6 +4,10 @@ from django.http import HttpResponse
 from django.db import connection
 import json
 
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 def trans(x):
     if type(x) == int or type(x) == long:
         return str(x)
@@ -37,7 +41,11 @@ def findQuestionByContent(request, content):
         tempdata['focus_count'] = trans(row[10])
         tempdata['click'] = trans(row[11])
 
-        returndata.append(tempdata)
+        # returndata.append(tempdata)
+        returnurl = 'http://www.seuknower.com/question/%s' % tempdata['id']
+        returnstr = tempdata['title'] + ' ' + returnurl + '\n'
+
+        returndata.append(returnstr)
 
     return HttpResponse(json.dumps(returndata, ensure_ascii=False), mimetype='application/json')
 

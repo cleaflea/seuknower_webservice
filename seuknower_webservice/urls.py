@@ -20,6 +20,14 @@ urlpatterns += patterns('qanda_service.views',
     url(r'^seuknower_webservice/qanda/(.*)', 'findQuestionByContent'),
 )
 
+urlpatterns += patterns('event_service.views',
+    url(r'^seuknower_webservice/event/latest', 'findEventLatest'),
+)
+
+urlpatterns += patterns('market_service.views',
+    url(r'^seuknower_webservice/market/(.*)', 'findCommodityByContent'),
+)
+
 urlpatterns += patterns('curriculum_service.views',
     url(r'^seuknower_webservice/curriculum/([\w]+)/([\w-]+)/$', 'parserHtml'),
     url(r'^seuknower_webservice/curriculums/term/$', 'getCurriculumTerm'),
